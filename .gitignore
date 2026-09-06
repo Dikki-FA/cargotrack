@@ -1,0 +1,40 @@
+# ===== Laravel (cargotrack-api) =====
+cargotrack-api/vendor/
+cargotrack-api/node_modules/
+cargotrack-api/.env
+cargotrack-api/.env.backup
+cargotrack-api/.phpunit.result.cache
+cargotrack-api/storage/*.key
+cargotrack-api/storage/logs/*.log
+cargotrack-api/storage/framework/cache/*
+cargotrack-api/storage/framework/sessions/*
+cargotrack-api/storage/framework/views/*
+cargotrack-api/bootstrap/cache/*.php
+cargotrack-api/public/hot
+cargotrack-api/public/storage
+cargotrack-api/.idea
+cargotrack-api/.vscode
+cargotrack-api/Homestead.json
+cargotrack-api/Homestead.yaml
+cargotrack-api/auth.json
+
+# ===== Vue (cargotrack-web) =====
+cargotrack-web/node_modules/
+cargotrack-web/dist/
+cargotrack-web/.env
+cargotrack-web/.env.local
+cargotrack-web/.env.*.local
+cargotrack-web/*.log
+cargotrack-web/.vite/
+
+# ===== General =====
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
