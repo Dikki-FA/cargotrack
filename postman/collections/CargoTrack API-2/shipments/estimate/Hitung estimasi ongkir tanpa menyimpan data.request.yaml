@@ -1,0 +1,49 @@
+$kind: http-request
+description: |
+  Dipakai form Create Order untuk kalkulasi harga instan.
+  Rumus: `base_fee + (weight_kg x rate_per_kg) + intercity_surcharge`.
+  Surcharge hanya berlaku jika kota asal berbeda dengan kota tujuan.
+
+  *Catatan: endpoint ini tambahan di luar 7 endpoint pada soal (dibutuhkan Soal 3.3).*
+url: "{{baseUrl}}/shipments/estimate"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "origin_city": "Jakarta",
+      "destination_city": "Bandung",
+      "weight_kg": 2.5
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "origin_city": {
+          "type": "string"
+        },
+        "destination_city": {
+          "type": "string"
+        },
+        "weight_kg": {
+          "type": "number",
+          "minimum": 0.01,
+          "format": "float"
+        }
+      },
+      "required": [
+        "origin_city",
+        "destination_city",
+        "weight_kg"
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Hitung estimasi ongkir tanpa menyimpan data.resources/examples
+order: 1000

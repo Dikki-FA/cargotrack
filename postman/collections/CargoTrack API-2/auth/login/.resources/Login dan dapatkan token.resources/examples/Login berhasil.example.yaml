@@ -1,0 +1,86 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/auth/login"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "email": "admin@cargotrack.test",
+        "password": "password"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "data": {
+          "token": "1|abc123exampletoken",
+          "token_type": "Bearer",
+          "user": {
+            "id": 5696,
+            "name": "string",
+            "email": "trs@eFTxgnlJMCiJwQRlazWPNmQ.rkg",
+            "role": "courier",
+            "warehouse_id": 7369
+          }
+        },
+        "message": "Login berhasil."
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string",
+                "example": "1|abc123exampletoken"
+              },
+              "token_type": {
+                "type": "string",
+                "example": "Bearer"
+              },
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "admin",
+                      "warehouse_staff",
+                      "courier"
+                    ]
+                  },
+                  "warehouse_id": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          },
+          "message": {
+            "type": "string",
+            "example": "Login berhasil."
+          }
+        }
+      }
+order: 1000

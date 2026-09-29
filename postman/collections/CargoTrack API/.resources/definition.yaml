@@ -1,0 +1,20 @@
+$kind: collection
+description: |
+  Kontrak API untuk sistem manajemen logistik & pengiriman **CargoTrack**.
+
+  **Konvensi umum**
+  - Base path: `/api/v1`. Semua request dan response berformat JSON, kecuali endpoint label (PDF).
+  - Autentikasi: Laravel Sanctum, `Authorization: Bearer <token>`.
+  - Response sukses: `{ "data": ..., "message": "..." }`.
+  - Response error: `{ "message": "...", "errors": { "field": ["..."] } }` (`errors` hanya ada pada 422).
+  - Response list berpaginasi memakai format standar Laravel: `data`, `links`, `meta`.
+
+  **Hak akses per role**
+  | Role | Akses |
+  |---|---|
+  | `admin` | Penuh atas semua shipment |
+  | `warehouse_staff` | Hanya shipment di gudangnya; boleh set status `received_at_warehouse`, `in_transit` |
+  | `courier` | Hanya shipment yang ditugaskan kepadanya; boleh set status `out_for_delivery`, `delivered` |
+  | Guest | Hanya public tracking |
+variables:
+  baseUrl: http://localhost:8000/api/v1

@@ -1,0 +1,33 @@
+$kind: http-request
+description: |
+  **Tanpa autentikasi.** Hanya menampilkan data non-sensitif
+  (tanpa nomor telepon dan alamat lengkap) beserta timeline perjalanan.
+  Endpoint publik ini wajib dikenai rate limiting.
+url: "{{baseUrl}}/shipments/:tracking_number"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: tracking_number
+    value: CT-20260907-0001
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "pattern": "^CT-\\d{8}-[A-Z0-9]{4}$"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: text
+  content: ""
+settings: {}
+examples: ./.resources/Public tracking berdasarkan nomor resi.resources/examples
+order: 1000

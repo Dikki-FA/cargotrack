@@ -1,0 +1,63 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/shipments"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "sender_name": "string",
+        "sender_phone": "string",
+        "sender_address": "string",
+        "origin_city": "string",
+        "receiver_name": "string",
+        "receiver_phone": "string",
+        "receiver_address": "string",
+        "destination_city": "string",
+        "weight_kg": 160840.97013661862,
+        "item_type": "string",
+        "assigned_courier_id": 1358
+      }
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "The given data was invalid.",
+        "errors": {
+          "weight_kg": [
+            "The weight kg field is required."
+          ]
+        }
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "The given data was invalid."
+          },
+          "errors": {
+            "type": "object",
+            "example": {
+              "weight_kg": [
+                "The weight kg field is required."
+              ]
+            }
+          }
+        }
+      }
+order: 4000

@@ -1,0 +1,710 @@
+openapi: 3.0.3
+info:
+  title: CargoTrack API
+  version: 1.0.0
+  description: |
+    Kontrak API untuk sistem manajemen logistik & pengiriman **CargoTrack**.
+
+    **Konvensi umum**
+    - Base path: `/api/v1`. Semua request dan response berformat JSON, kecuali endpoint label (PDF).
+    - Autentikasi: Laravel Sanctum, `Authorization: Bearer <token>`.
+    - Response sukses: `{ "data": ..., "message": "..." }`.
+    - Response error: `{ "message": "...", "errors": { "field": ["..."] } }` (`errors` hanya ada pada 422).
+    - Response list berpaginasi memakai format standar Laravel: `data`, `links`, `meta`.
+
+    **Hak akses per role**
+    | Role | Akses |
+    |---|---|
+    | `admin` | Penuh atas semua shipment |
+    | `warehouse_staff` | Hanya shipment di gudangnya; boleh set status `received_at_warehouse`, `in_transit` |
+    | `courier` | Hanya shipment yang ditugaskan kepadanya; boleh set status `out_for_delivery`, `delivered` |
+    | Guest | Hanya public tracking |
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development
+  - url: https://api.example.com/api/v1
+    description: Production (isi setelah deploy)
+
+tags:
+  - name: Auth
+  - name: Shipments
+  - name: Tracking
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login dan dapatkan token
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: admin@cargotrack.test
+              password: password
+      responses:
+        '200':
+          description: Login berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Email atau password salah
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: Email atau password salah.
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout (mencabut token yang sedang dipakai)
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnly'
+              example:
+                message: Logout berhasil.
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+
+  /shipments:
+    get:
+      tags: [Shipments]
+      summary: Daftar shipment (filter, search, pagination)
+      description: |
+        Hasil otomatis dibatasi sesuai role:
+        `admin` melihat semua, `warehouse_staff` hanya shipment di gudangnya,
+        `courier` hanya shipment yang ditugaskan kepadanya.
+      operationId: listShipments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          description: Cari berdasarkan nomor resi, nama pengirim, atau nama penerima
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Filter berdasarkan status saat ini
+          schema:
+            $ref: '#/components/schemas/ShipmentStatus'
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 15
+      responses:
+        '200':
+          description: Daftar shipment berpaginasi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipmentPage'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+    post:
+      tags: [Shipments]
+      summary: Buat order pengiriman baru
+      description: |
+        Hanya `admin`. Nomor resi (`CT-YYYYMMDD-XXXX`) dan `shipping_cost`
+        dihitung server; keduanya tidak boleh dikirim client.
+        Status awal selalu `pending`, dan satu log awal otomatis dibuat.
+      operationId: createShipment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipmentCreateRequest'
+      responses:
+        '201':
+          description: Shipment berhasil dibuat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Shipment'
+                  message:
+                    type: string
+                    example: Shipment berhasil dibuat.
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /shipments/estimate:
+    post:
+      tags: [Shipments]
+      summary: Hitung estimasi ongkir tanpa menyimpan data
+      description: |
+        Dipakai form Create Order untuk kalkulasi harga instan.
+        Rumus: `base_fee + (weight_kg x rate_per_kg) + intercity_surcharge`.
+        Surcharge hanya berlaku jika kota asal berbeda dengan kota tujuan.
+
+        *Catatan: endpoint ini tambahan di luar 7 endpoint pada soal (dibutuhkan Soal 3.3).*
+      operationId: estimateShipping
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EstimateRequest'
+            example:
+              origin_city: Jakarta
+              destination_city: Bandung
+              weight_kg: 2.5
+      responses:
+        '200':
+          description: Rincian estimasi biaya
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Estimate'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /shipments/{tracking_number}:
+    get:
+      tags: [Tracking]
+      summary: Public tracking berdasarkan nomor resi
+      description: |
+        **Tanpa autentikasi.** Hanya menampilkan data non-sensitif
+        (tanpa nomor telepon dan alamat lengkap) beserta timeline perjalanan.
+        Endpoint publik ini wajib dikenai rate limiting.
+      operationId: trackShipment
+      parameters:
+        - name: tracking_number
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^CT-\d{8}-[A-Z0-9]{4}$'
+          example: CT-20260907-0001
+      responses:
+        '200':
+          description: Data tracking beserta timeline
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PublicTracking'
+        '404':
+          description: Nomor resi tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: Nomor resi tidak ditemukan.
+        '429':
+          description: Terlalu banyak request (rate limit)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /shipments/{id}/status:
+    patch:
+      tags: [Shipments]
+      summary: Update status shipment dan tambahkan log
+      description: |
+        Setiap update membuat satu baris baru di `shipment_logs`, memicu event
+        broadcast `ShipmentStatusUpdated`, dan (jika `delivered`) mengantrekan
+        notifikasi email.
+
+        Batasan per role:
+        - `admin`: semua status.
+        - `warehouse_staff`: hanya `received_at_warehouse`, `in_transit`, dan hanya untuk shipment di gudangnya.
+        - `courier`: hanya `out_for_delivery`, `delivered`, dan hanya untuk shipment yang ditugaskan kepadanya.
+
+        Pelanggaran batasan menghasilkan `403`.
+      operationId: updateShipmentStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ShipmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusUpdateRequest'
+            example:
+              status: in_transit
+              location_description: Gudang Jakarta Timur
+              notes: Diberangkatkan ke Bandung
+      responses:
+        '200':
+          description: Status berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      shipment:
+                        $ref: '#/components/schemas/Shipment'
+                      log:
+                        $ref: '#/components/schemas/ShipmentLog'
+                  message:
+                    type: string
+                    example: Status berhasil diperbarui.
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /shipments/{id}/label:
+    get:
+      tags: [Shipments]
+      summary: Unduh label resi (PDF A6, 100x150 mm)
+      description: |
+        PDF memuat QR/Barcode dari `tracking_number`, data pengirim & penerima,
+        berat, jenis barang, dan biaya. Akses mengikuti aturan role yang sama
+        dengan daftar shipment.
+      operationId: downloadLabel
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ShipmentId'
+      responses:
+        '200':
+          description: File PDF label
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Token dari `POST /auth/login` (Laravel Sanctum)
+
+  parameters:
+    ShipmentId:
+      name: id
+      in: path
+      required: true
+      description: ID shipment (bukan nomor resi)
+      schema:
+        type: integer
+      example: 1
+
+  responses:
+    Unauthenticated:
+      description: Token tidak ada atau tidak valid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Unauthenticated.
+    Forbidden:
+      description: Role tidak berhak melakukan aksi ini
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: This action is unauthorized.
+    NotFound:
+      description: Data tidak ditemukan
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Data tidak ditemukan.
+    ValidationError:
+      description: Input tidak valid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+
+  schemas:
+    Role:
+      type: string
+      enum: [admin, warehouse_staff, courier]
+
+    ShipmentStatus:
+      type: string
+      enum:
+        - pending
+        - received_at_warehouse
+        - in_transit
+        - out_for_delivery
+        - delivered
+        - failed
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+
+    MessageOnly:
+      type: object
+      properties:
+        message:
+          type: string
+
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: The given data was invalid.
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            weight_kg: [The weight kg field is required.]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/Role'
+        warehouse_id:
+          type: integer
+          nullable: true
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    LoginResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+              example: 1|abc123exampletoken
+            token_type:
+              type: string
+              example: Bearer
+            user:
+              $ref: '#/components/schemas/User'
+        message:
+          type: string
+          example: Login berhasil.
+
+    Shipment:
+      type: object
+      properties:
+        id:
+          type: integer
+        tracking_number:
+          type: string
+          example: CT-20260907-0001
+        sender_name:
+          type: string
+        sender_phone:
+          type: string
+        sender_address:
+          type: string
+        origin_city:
+          type: string
+        receiver_name:
+          type: string
+        receiver_phone:
+          type: string
+        receiver_address:
+          type: string
+        destination_city:
+          type: string
+        weight_kg:
+          type: number
+          format: float
+        item_type:
+          type: string
+        current_status:
+          $ref: '#/components/schemas/ShipmentStatus'
+        shipping_cost:
+          type: number
+          format: float
+        current_warehouse_id:
+          type: integer
+          nullable: true
+        assigned_courier_id:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ShipmentCreateRequest:
+      type: object
+      required:
+        - sender_name
+        - sender_phone
+        - sender_address
+        - origin_city
+        - receiver_name
+        - receiver_phone
+        - receiver_address
+        - destination_city
+        - weight_kg
+        - item_type
+      properties:
+        sender_name:
+          type: string
+          maxLength: 255
+        sender_phone:
+          type: string
+          maxLength: 255
+        sender_address:
+          type: string
+          maxLength: 255
+        origin_city:
+          type: string
+          maxLength: 255
+        receiver_name:
+          type: string
+          maxLength: 255
+        receiver_phone:
+          type: string
+          maxLength: 255
+        receiver_address:
+          type: string
+          maxLength: 255
+        destination_city:
+          type: string
+          maxLength: 255
+        weight_kg:
+          type: number
+          format: float
+          minimum: 0.01
+          maximum: 999999.99
+        item_type:
+          type: string
+          maxLength: 255
+        assigned_courier_id:
+          type: integer
+          nullable: true
+          description: Opsional, ID kurir yang ditugaskan
+
+    EstimateRequest:
+      type: object
+      required: [origin_city, destination_city, weight_kg]
+      properties:
+        origin_city:
+          type: string
+        destination_city:
+          type: string
+        weight_kg:
+          type: number
+          format: float
+          minimum: 0.01
+
+    Estimate:
+      type: object
+      properties:
+        base_fee:
+          type: number
+        rate_per_kg:
+          type: number
+        weight_cost:
+          type: number
+          description: weight_kg x rate_per_kg
+        intercity_surcharge:
+          type: number
+        total_cost:
+          type: number
+      example:
+        base_fee: 10000
+        rate_per_kg: 5000
+        weight_cost: 12500
+        intercity_surcharge: 5000
+        total_cost: 27500
+
+    StatusUpdateRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: '#/components/schemas/ShipmentStatus'
+        location_description:
+          type: string
+          nullable: true
+          maxLength: 255
+        notes:
+          type: string
+          nullable: true
+
+    ShipmentLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        shipment_id:
+          type: integer
+        status:
+          $ref: '#/components/schemas/ShipmentStatus'
+        location_description:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        created_by_user_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    PublicLog:
+      type: object
+      description: Log versi publik (tanpa data internal seperti ID user pembuat)
+      properties:
+        status:
+          $ref: '#/components/schemas/ShipmentStatus'
+        location_description:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    PublicTracking:
+      type: object
+      properties:
+        tracking_number:
+          type: string
+        current_status:
+          $ref: '#/components/schemas/ShipmentStatus'
+        origin_city:
+          type: string
+        destination_city:
+          type: string
+        item_type:
+          type: string
+        weight_kg:
+          type: number
+          format: float
+        logs:
+          type: array
+          description: Timeline perjalanan, urut dari yang terlama ke terbaru
+          items:
+            $ref: '#/components/schemas/PublicLog'
+
+    ShipmentPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Shipment'
+        links:
+          type: object
+          properties:
+            first:
+              type: string
+              nullable: true
+            last:
+              type: string
+              nullable: true
+            prev:
+              type: string
+              nullable: true
+            next:
+              type: string
+              nullable: true
+        meta:
+          type: object
+          properties:
+            current_page:
+              type: integer
+            from:
+              type: integer
+              nullable: true
+            last_page:
+              type: integer
+            per_page:
+              type: integer
+            to:
+              type: integer
+              nullable: true
+            total:
+              type: integer

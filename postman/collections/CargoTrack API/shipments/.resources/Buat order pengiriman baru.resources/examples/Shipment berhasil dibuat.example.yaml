@@ -1,0 +1,142 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/shipments"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "sender_name": "string",
+        "sender_phone": "string",
+        "sender_address": "string",
+        "origin_city": "string",
+        "receiver_name": "string",
+        "receiver_phone": "string",
+        "receiver_address": "string",
+        "destination_city": "string",
+        "weight_kg": 197946.81459286995,
+        "item_type": "string",
+        "assigned_courier_id": 4637
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "data": {
+          "id": 8945,
+          "tracking_number": "CT-20260907-0001",
+          "sender_name": "string",
+          "sender_phone": "string",
+          "sender_address": "string",
+          "origin_city": "string",
+          "receiver_name": "string",
+          "receiver_phone": "string",
+          "receiver_address": "string",
+          "destination_city": "string",
+          "weight_kg": 7095.623792663562,
+          "item_type": "string",
+          "current_status": "pending",
+          "shipping_cost": 182.92587686989714,
+          "current_warehouse_id": 28,
+          "assigned_courier_id": 9750,
+          "created_at": "2022-01-27T21:59:57.946Z",
+          "updated_at": "1962-07-24T06:05:33.169Z"
+        },
+        "message": "Shipment berhasil dibuat."
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "tracking_number": {
+                "type": "string",
+                "example": "CT-20260907-0001"
+              },
+              "sender_name": {
+                "type": "string"
+              },
+              "sender_phone": {
+                "type": "string"
+              },
+              "sender_address": {
+                "type": "string"
+              },
+              "origin_city": {
+                "type": "string"
+              },
+              "receiver_name": {
+                "type": "string"
+              },
+              "receiver_phone": {
+                "type": "string"
+              },
+              "receiver_address": {
+                "type": "string"
+              },
+              "destination_city": {
+                "type": "string"
+              },
+              "weight_kg": {
+                "type": "number",
+                "format": "float"
+              },
+              "item_type": {
+                "type": "string"
+              },
+              "current_status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "received_at_warehouse",
+                  "in_transit",
+                  "out_for_delivery",
+                  "delivered",
+                  "failed"
+                ]
+              },
+              "shipping_cost": {
+                "type": "number",
+                "format": "float"
+              },
+              "current_warehouse_id": {
+                "type": "integer"
+              },
+              "assigned_courier_id": {
+                "type": "integer"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "message": {
+            "type": "string",
+            "example": "Shipment berhasil dibuat."
+          }
+        }
+      }
+order: 1000

@@ -1,0 +1,190 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/shipments/:id/status"
+  method: PATCH
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    - key: id
+      value: "1"
+      disabled: false
+      description: ID shipment (bukan nomor resi)
+  body:
+    type: json
+    content: |-
+      {
+        "status": "in_transit",
+        "location_description": "Gudang Jakarta Timur",
+        "notes": "Diberangkatkan ke Bandung"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "data": {
+          "shipment": {
+            "id": 7520,
+            "tracking_number": "CT-20260907-0001",
+            "sender_name": "string",
+            "sender_phone": "string",
+            "sender_address": "string",
+            "origin_city": "string",
+            "receiver_name": "string",
+            "receiver_phone": "string",
+            "receiver_address": "string",
+            "destination_city": "string",
+            "weight_kg": 8039.579759572141,
+            "item_type": "string",
+            "current_status": "failed",
+            "shipping_cost": 6883.222199425054,
+            "current_warehouse_id": 9576,
+            "assigned_courier_id": 4393,
+            "created_at": "2009-06-17T12:17:03.745Z",
+            "updated_at": "1953-10-04T00:47:49.298Z"
+          },
+          "log": {
+            "id": 4630,
+            "shipment_id": 500,
+            "status": "in_transit",
+            "location_description": "string",
+            "notes": "string",
+            "created_by_user_id": 2847,
+            "created_at": "2009-08-22T02:07:54.500Z"
+          }
+        },
+        "message": "Status berhasil diperbarui."
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "shipment": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "tracking_number": {
+                    "type": "string",
+                    "example": "CT-20260907-0001"
+                  },
+                  "sender_name": {
+                    "type": "string"
+                  },
+                  "sender_phone": {
+                    "type": "string"
+                  },
+                  "sender_address": {
+                    "type": "string"
+                  },
+                  "origin_city": {
+                    "type": "string"
+                  },
+                  "receiver_name": {
+                    "type": "string"
+                  },
+                  "receiver_phone": {
+                    "type": "string"
+                  },
+                  "receiver_address": {
+                    "type": "string"
+                  },
+                  "destination_city": {
+                    "type": "string"
+                  },
+                  "weight_kg": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "item_type": {
+                    "type": "string"
+                  },
+                  "current_status": {
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "received_at_warehouse",
+                      "in_transit",
+                      "out_for_delivery",
+                      "delivered",
+                      "failed"
+                    ]
+                  },
+                  "shipping_cost": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "current_warehouse_id": {
+                    "type": "integer"
+                  },
+                  "assigned_courier_id": {
+                    "type": "integer"
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              },
+              "log": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "shipment_id": {
+                    "type": "integer"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "received_at_warehouse",
+                      "in_transit",
+                      "out_for_delivery",
+                      "delivered",
+                      "failed"
+                    ]
+                  },
+                  "location_description": {
+                    "type": "string"
+                  },
+                  "notes": {
+                    "type": "string"
+                  },
+                  "created_by_user_id": {
+                    "type": "integer"
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          },
+          "message": {
+            "type": "string",
+            "example": "Status berhasil diperbarui."
+          }
+        }
+      }
+order: 1000

@@ -1,0 +1,49 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/shipments"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "sender_name": "string",
+        "sender_phone": "string",
+        "sender_address": "string",
+        "origin_city": "string",
+        "receiver_name": "string",
+        "receiver_phone": "string",
+        "receiver_address": "string",
+        "destination_city": "string",
+        "weight_kg": 671908.1187036968,
+        "item_type": "string",
+        "assigned_courier_id": 9032
+      }
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "This action is unauthorized."
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+order: 3000

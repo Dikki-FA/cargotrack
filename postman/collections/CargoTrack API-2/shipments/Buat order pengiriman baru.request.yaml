@@ -1,0 +1,97 @@
+$kind: http-request
+description: |
+  Hanya `admin`. Nomor resi (`CT-YYYYMMDD-XXXX`) dan `shipping_cost`
+  dihitung server; keduanya tidak boleh dikirim client.
+  Status awal selalu `pending`, dan satu log awal otomatis dibuat.
+url: "{{baseUrl}}/shipments"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "sender_name": "string",
+      "sender_phone": "string",
+      "sender_address": "string",
+      "origin_city": "string",
+      "receiver_name": "string",
+      "receiver_phone": "string",
+      "receiver_address": "string",
+      "destination_city": "string",
+      "weight_kg": 160840.97013661862,
+      "item_type": "string",
+      "assigned_courier_id": 1358
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "sender_name": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "sender_phone": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "sender_address": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "origin_city": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "receiver_name": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "receiver_phone": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "receiver_address": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "destination_city": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "weight_kg": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 999999.99,
+          "format": "float"
+        },
+        "item_type": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "assigned_courier_id": {
+          "type": "integer",
+          "description": "Opsional, ID kurir yang ditugaskan"
+        }
+      },
+      "required": [
+        "sender_name",
+        "sender_phone",
+        "sender_address",
+        "origin_city",
+        "receiver_name",
+        "receiver_phone",
+        "receiver_address",
+        "destination_city",
+        "weight_kg",
+        "item_type"
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Buat order pengiriman baru.resources/examples
+order: 2000
