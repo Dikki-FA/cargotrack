@@ -30,4 +30,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function courier()
+    {
+        return $this->hasOne(\App\Models\Courier::class);
+    }
 }
