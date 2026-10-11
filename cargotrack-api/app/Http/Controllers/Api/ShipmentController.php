@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreShipmentRequest;
 use App\Models\Shipment;
+use App\Services\ShippingCalculatorService;
+use App\Services\TrackingNumberGenerator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class ShipmentController extends Controller
@@ -44,5 +48,41 @@ class ShipmentController extends Controller
             ->paginate(min($request->integer('per_page', 15), 100));
         
         return response()->json($shipments);
+    }
+
+    public function store(
+        StoreShipmentRequest $request, 
+        ShippingCalculatorService $calculator,
+        TrackingNumberGenerator $trackingNumber)
+    {
+        $data = $request->validated();
+
+        $estimate = $calculator->calculate(
+            $data['origin_city'], 
+            $data['destination_city'], 
+            (float) $data['weight_kg']);
+
+        $shipment = DB::transaction(function () use ($data, $estimate, $trackingNumber, $request) {
+            $shipment = Shipment::create([
+                ...$data,
+                'tracking_number' => $trackingNumber->generate(),
+                'shipping_cost' => $estimate['total_cost'],
+                'current_status' => 'pending',
+            ]);
+
+            $shipment->logs()->create([
+                'status' => 'pending',
+                'location_description' => $data['origin_city'],
+                'notes' => 'Order dibuat.',
+                'created_by_user_id' => $request->user()->id,
+            ]);
+
+            return $shipment;
+        });
+
+        return response()->json([
+            'data' => $shipment->fresh(),
+            'message' => 'Shipment berhasil dibuat.',
+            ], 201);
     }
 }
