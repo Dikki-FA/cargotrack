@@ -11,5 +11,6 @@ Route::prefix('v1')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/shipments', [ShipmentController::class, 'index']);
         Route::post('/shipments', [ShipmentController::class, 'store']);
+        Route::post('/shipments/estimate', [ShipmentController::class, 'estimate']);
     });
 });

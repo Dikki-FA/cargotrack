@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreShipmentRequest;
+use App\Http\Requests\EstimateShippingRequest;
 use App\Models\Shipment;
 use App\Services\ShippingCalculatorService;
 use App\Services\TrackingNumberGenerator;
@@ -85,4 +86,19 @@ class ShipmentController extends Controller
             'message' => 'Shipment berhasil dibuat.',
             ], 201);
     }
+
+    public function estimate(
+        EstimateShippingRequest $request, 
+        ShippingCalculatorService $calculator)
+    {
+        $data = $request->validated();
+
+        $estimate = $calculator->calculate(
+            $data['origin_city'], 
+            $data['destination_city'], 
+            (float) $data['weight_kg']);
+
+        return response()->json(['data' => $estimate]);
+    }
+    
 }

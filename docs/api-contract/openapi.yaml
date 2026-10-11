@@ -552,7 +552,7 @@ components:
         weight_kg:
           type: number
           format: float
-          minimum: 0.01
+          minimum: 0.1
           maximum: 999999.99
         item_type:
           type: string
@@ -573,7 +573,7 @@ components:
         weight_kg:
           type: number
           format: float
-          minimum: 0.01
+          minimum: 0.1
 
     Estimate:
       type: object
