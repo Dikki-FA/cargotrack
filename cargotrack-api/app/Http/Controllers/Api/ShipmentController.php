@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreShipmentRequest;
 use App\Http\Requests\EstimateShippingRequest;
+use App\Http\Requests\UpdateShipmentStatusRequest;
 use App\Models\Shipment;
 use App\Services\ShippingCalculatorService;
 use App\Services\TrackingNumberGenerator;
@@ -99,6 +100,32 @@ class ShipmentController extends Controller
             (float) $data['weight_kg']);
 
         return response()->json(['data' => $estimate]);
+    }
+
+    public function updateStatus(UpdateShipmentStatusRequest $request, Shipment $shipment)
+    {
+        $data = $request->validated();
+        
+        Gate::authorize('updateStatus', [$shipment, $data['status']]);
+
+        $log = DB::transaction(function () use ($shipment, $data, $request) {
+            $shipment->update(['current_status' => $data['status']]);
+
+            return $shipment->logs()->create([
+                'status' => $data['status'],
+                'location_description' => $data['location_description'] ?? null,
+                'notes' => $data['notes'] ?? null,
+                'created_by_user_id' => $request->user()->id,
+            ]);
+        });
+
+        return response()->json([
+            'data' => [
+                'shipment' => $shipment->fresh(),
+                'log' => $log
+            ],
+            'message' => 'Status berhasil diperbarui.',
+        ]);
     }
     
 }

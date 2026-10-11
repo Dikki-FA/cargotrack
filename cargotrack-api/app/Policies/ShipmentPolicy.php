@@ -59,7 +59,8 @@ class ShipmentPolicy
 
     public function ownsWarehouse(User $user, Shipment $shipment): bool
     {
-        return $this->view ($user, $shipment);
+        return $user->warehouse_id !== null 
+        && $shipment->current_warehouse_id === $user->warehouse_id;
     }
 
     public function isAssignedCourier(User $user, Shipment $shipment): bool
