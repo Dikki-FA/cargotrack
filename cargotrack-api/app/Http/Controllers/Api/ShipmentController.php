@@ -9,6 +9,8 @@ use App\Http\Requests\UpdateShipmentStatusRequest;
 use App\Models\Shipment;
 use App\Services\ShippingCalculatorService;
 use App\Services\TrackingNumberGenerator;
+use App\Services\QrCodeGenerator;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -126,6 +128,18 @@ class ShipmentController extends Controller
             ],
             'message' => 'Status berhasil diperbarui.',
         ]);
+    }
+
+    public function label(Shipment $shipment, QrCodeGenerator $qr)
+    {
+        Gate::authorize('downloadLabel', $shipment);
+
+        $pdf = Pdf::loadView('labels.shipment', [
+            'shipment' => $shipment,
+            'qrDataUri' => $qr->svgDataUri($shipment->tracking_number),
+        ])->setPaper([0, 0, 283.46, 425.2]); // 100*150 mm
+
+        return $pdf->download("label-{$shipment->tracking_number}.pdf");
     }
     
 }

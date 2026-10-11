@@ -15,5 +15,6 @@ Route::prefix('v1')->group(function () {
         Route::post('/shipments', [ShipmentController::class, 'store']);
         Route::post('/shipments/estimate', [ShipmentController::class, 'estimate']);
         Route::patch('/shipments/{shipment}/status', [ShipmentController::class, 'updateStatus']);
+        Route::get('/shipments/{shipment}/label', [ShipmentController::class, 'label']);
     });
 });
