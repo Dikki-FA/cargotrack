@@ -10,10 +10,12 @@ use App\Models\Shipment;
 use App\Services\ShippingCalculatorService;
 use App\Services\TrackingNumberGenerator;
 use App\Services\QrCodeGenerator;
+use App\Mail\ShipmentDeliveredMail;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 
 class ShipmentController extends Controller
 {
@@ -120,6 +122,17 @@ class ShipmentController extends Controller
                 'created_by_user_id' => $request->user()->id,
             ]);
         });
+
+        if ($data['status'] === 'delivered') {
+            $creatingAdmin = $shipment->logs()
+                ->where('status', 'pending')
+                ->first()
+                ?->creator;
+            
+                if ($creatingAdmin) {
+                    Mail::to($creatingAdmin->email)->queue(new ShipmentDeliveredMail($shipment));
+                }
+        }
 
         return response()->json([
             'data' => [
