@@ -11,6 +11,7 @@ use App\Services\ShippingCalculatorService;
 use App\Services\TrackingNumberGenerator;
 use App\Services\QrCodeGenerator;
 use App\Mail\ShipmentDeliveredMail;
+use App\Events\ShipmentStatusUpdated;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -114,7 +115,8 @@ class ShipmentController extends Controller
 
         $log = DB::transaction(function () use ($shipment, $data, $request) {
             $shipment->update(['current_status' => $data['status']]);
-
+        
+            
             return $shipment->logs()->create([
                 'status' => $data['status'],
                 'location_description' => $data['location_description'] ?? null,
@@ -122,6 +124,8 @@ class ShipmentController extends Controller
                 'created_by_user_id' => $request->user()->id,
             ]);
         });
+                
+        event(new ShipmentStatusUpdated($shipment, $log));
 
         if ($data['status'] === 'delivered') {
             $creatingAdmin = $shipment->logs()
@@ -129,9 +133,9 @@ class ShipmentController extends Controller
                 ->first()
                 ?->creator;
             
-                if ($creatingAdmin) {
-                    Mail::to($creatingAdmin->email)->queue(new ShipmentDeliveredMail($shipment));
-                }
+            if ($creatingAdmin) {
+                Mail::to($creatingAdmin->email)->queue(new ShipmentDeliveredMail($shipment));
+            }
         }
 
         return response()->json([
