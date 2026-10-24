@@ -11,9 +11,9 @@ const emit = defineEmits(['close', 'updated'])
 const authStore = useAuthStore()
 
 const statusByRole = {
-    admin: ['pending', 'received_at_warehouse', 'in_transit', 'out_for_delivery', 'delivered', 'failed'],
-    warehouse_staff: ['received_at_warehouse', 'in_transit'],
-    courier: ['out_for delivery', 'delivered'],
+  admin: ['pending', 'received_at_warehouse', 'in_transit', 'out_for_delivery', 'delivered', 'failed'],
+  warehouse_staff: ['received_at_warehouse', 'in_transit'],
+  courier: ['out_for_delivery', 'delivered'],
 }
 
 const allowedStatuses = computed(() => statusByRole[authStore.role] ?? [])
@@ -29,7 +29,7 @@ async function handleSubmit() {
     isSubmitting.value = true
     
     try {
-        await api.patch('/shipments/${props.shipment.id}/status', {
+        await api.patch(`/shipments/${props.shipment.id}/status`, {
             status: status.value,
             location_description: locationDescription.value || null,
             notes: notes.value || null,
@@ -59,7 +59,7 @@ async function handleSubmit() {
             </div>
 
             <p class="text-sm text-gray-500 mb-4">
-                Resi: <span class="font-mono">{{ shiupment.tracking_number }}</span><br />
+                Resi: <span class="font-mono">{{ shipment.tracking_number }}</span><br />
                 Status saat ini: <span class="font-semibold">{{ shipment.current_status }}</span>
             </p>
 
@@ -67,8 +67,8 @@ async function handleSubmit() {
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Status baru</label>
                     <select v-model="status" required class="w-full border rounded px-3 py-2">
-                        <option value="" disabled>Pilih Status</option>
-                        <option v-for="s in allowedStatuses" :key="s" value="s">{{ s }}</option>
+                        <option value="" disabled>Pilih status</option>
+                        <option v-for="s in allowedStatuses" :key="s" :value="s">{{ s }}</option>
                     </select>
                 </div>
 
