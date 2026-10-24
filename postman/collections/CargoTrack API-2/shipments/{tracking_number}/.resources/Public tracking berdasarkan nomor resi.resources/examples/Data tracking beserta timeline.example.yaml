@@ -1,0 +1,113 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/shipments/:tracking_number"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    tracking_number: CT-20260907-0001
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "data": {
+          "tracking_number": "string",
+          "current_status": "delivered",
+          "origin_city": "string",
+          "destination_city": "string",
+          "item_type": "string",
+          "weight_kg": 1270.9447186476575,
+          "logs": [
+            {
+              "status": "pending",
+              "location_description": "string",
+              "notes": "string",
+              "created_at": "1996-10-23T04:28:52.757Z"
+            },
+            {
+              "status": "delivered",
+              "location_description": "string",
+              "notes": "string",
+              "created_at": "1975-05-12T22:05:13.484Z"
+            }
+          ]
+        }
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "tracking_number": {
+                "type": "string"
+              },
+              "current_status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "received_at_warehouse",
+                  "in_transit",
+                  "out_for_delivery",
+                  "delivered",
+                  "failed"
+                ]
+              },
+              "origin_city": {
+                "type": "string"
+              },
+              "destination_city": {
+                "type": "string"
+              },
+              "item_type": {
+                "type": "string"
+              },
+              "weight_kg": {
+                "type": "number",
+                "format": "float"
+              },
+              "logs": {
+                "type": "array",
+                "description": "Timeline perjalanan, urut dari yang terlama ke terbaru",
+                "items": {
+                  "description": "Log versi publik (tanpa data internal seperti ID user pembuat)",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "received_at_warehouse",
+                        "in_transit",
+                        "out_for_delivery",
+                        "delivered",
+                        "failed"
+                      ]
+                    },
+                    "location_description": {
+                      "type": "string"
+                    },
+                    "notes": {
+                      "type": "string"
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+order: 1000

@@ -1,0 +1,13 @@
+workspace:
+  id: 310fc08d-4b0b-46a1-8833-abae1860fcd9
+localResources:
+  specs:
+    - ../docs/api-contract/openapi.yaml
+    - ../postman/specs/CargoTrack API/openapi.yaml
+    - ../postman/specs/CargoTrack API-1/openapi.yaml
+    - ../postman/specs/CargoTrack API-2/openapi.yaml
+resourceNameMappings:
+  specs:
+    - ../postman/specs/CargoTrack API/openapi.yaml: CargoTrack API
+    - ../postman/specs/CargoTrack API-1/openapi.yaml: CargoTrack API
+    - ../postman/specs/CargoTrack API-2/openapi.yaml: CargoTrack API

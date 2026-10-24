@@ -1,0 +1,218 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/shipments?search=string&status=delivered&page=1&per_page=15"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  queryParams:
+    - key: search
+      value: string
+      disabled: false
+      description: Cari berdasarkan nomor resi, nama pengirim, atau nama penerima
+    - key: status
+      value: delivered
+      disabled: false
+      description: Filter berdasarkan status saat ini
+    - key: page
+      value: "1"
+      disabled: false
+      description: ""
+    - key: per_page
+      value: "15"
+      disabled: false
+      description: ""
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "data": [
+          {
+            "id": 714,
+            "tracking_number": "CT-20260907-0001",
+            "sender_name": "string",
+            "sender_phone": "string",
+            "sender_address": "string",
+            "origin_city": "string",
+            "receiver_name": "string",
+            "receiver_phone": "string",
+            "receiver_address": "string",
+            "destination_city": "string",
+            "weight_kg": 3516.088716677923,
+            "item_type": "string",
+            "current_status": "delivered",
+            "shipping_cost": 448.3478025559784,
+            "current_warehouse_id": 5898,
+            "assigned_courier_id": 8656,
+            "created_at": "1966-02-06T18:10:47.718Z",
+            "updated_at": "1983-06-29T02:36:42.644Z"
+          },
+          {
+            "id": 830,
+            "tracking_number": "CT-20260907-0001",
+            "sender_name": "string",
+            "sender_phone": "string",
+            "sender_address": "string",
+            "origin_city": "string",
+            "receiver_name": "string",
+            "receiver_phone": "string",
+            "receiver_address": "string",
+            "destination_city": "string",
+            "weight_kg": 2996.249882526203,
+            "item_type": "string",
+            "current_status": "delivered",
+            "shipping_cost": 5601.901229101724,
+            "current_warehouse_id": 4406,
+            "assigned_courier_id": 9761,
+            "created_at": "1954-02-09T09:40:58.556Z",
+            "updated_at": "2000-12-11T05:39:14.425Z"
+          }
+        ],
+        "links": {
+          "first": "string",
+          "last": "string",
+          "prev": "string",
+          "next": "string"
+        },
+        "meta": {
+          "current_page": 9314,
+          "from": 4085,
+          "last_page": 3562,
+          "per_page": 5770,
+          "to": 3915,
+          "total": 3628
+        }
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "tracking_number": {
+                  "type": "string",
+                  "example": "CT-20260907-0001"
+                },
+                "sender_name": {
+                  "type": "string"
+                },
+                "sender_phone": {
+                  "type": "string"
+                },
+                "sender_address": {
+                  "type": "string"
+                },
+                "origin_city": {
+                  "type": "string"
+                },
+                "receiver_name": {
+                  "type": "string"
+                },
+                "receiver_phone": {
+                  "type": "string"
+                },
+                "receiver_address": {
+                  "type": "string"
+                },
+                "destination_city": {
+                  "type": "string"
+                },
+                "weight_kg": {
+                  "type": "number",
+                  "format": "float"
+                },
+                "item_type": {
+                  "type": "string"
+                },
+                "current_status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "received_at_warehouse",
+                    "in_transit",
+                    "out_for_delivery",
+                    "delivered",
+                    "failed"
+                  ]
+                },
+                "shipping_cost": {
+                  "type": "number",
+                  "format": "float"
+                },
+                "current_warehouse_id": {
+                  "type": "integer"
+                },
+                "assigned_courier_id": {
+                  "type": "integer"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "links": {
+            "type": "object",
+            "properties": {
+              "first": {
+                "type": "string"
+              },
+              "last": {
+                "type": "string"
+              },
+              "prev": {
+                "type": "string"
+              },
+              "next": {
+                "type": "string"
+              }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "current_page": {
+                "type": "integer"
+              },
+              "from": {
+                "type": "integer"
+              },
+              "last_page": {
+                "type": "integer"
+              },
+              "per_page": {
+                "type": "integer"
+              },
+              "to": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+order: 1000
