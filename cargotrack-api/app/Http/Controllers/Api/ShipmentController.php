@@ -29,7 +29,7 @@ class ShipmentController extends Controller
         $shipments = Shipment::query()
             ->when($user->role === 'warehouse_staff', function ($q) use ($user)
             {
-                user->warehouse_id
+                $user->warehouse_id
                     ? $q->where('current_warehouse_id', $user->warehouse_id)
                     : $q->whereRaw('1=0'); // If the user is a warehouse staff but not assigned to any warehouse, return no shipments
             })
@@ -41,7 +41,7 @@ class ShipmentController extends Controller
                     : $q->whereRaw('1=0'); // If the user is a courier but not assigned to any courier, return no shipments
             })
             
-            ->when(request()->filled('search'), function ($q) {
+            ->when(request()->filled('search'), function ($q) use ($request) {
                 $term = $request->search;
                 $q->where(function ($q) use ($term) {
                     $q->where('tracking_number', 'ilike', "%{$term}%")

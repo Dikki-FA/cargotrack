@@ -3,6 +3,8 @@ import { ref, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import api from '@/lib/api'
+import CreateOrderModal from '@/components/CreateOrderModal.vue'
+import StatusUpdateModal from '@/components/StatusUpdateModal.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -10,6 +12,8 @@ const router = useRouter()
 const shipments = ref([])
 const meta = ref({ current_page: 1, last_page: 1, total: 0 })
 const isLoading = ref(false)
+const showCreateModal = ref(false)
+const selectedShipment = ref(null)
 
 const search = ref('')
 const statusFilter = ref('')
@@ -57,6 +61,14 @@ function handleLogout() {
   router.push('/login')
 }
 
+function handleOrderCreated() {
+  fetchShipments()
+}
+
+function handleStatusUpdated() {
+  fetchShipments()
+}
+
 onMounted(fetchShipments)
 watch([search, statusFilter, page], fetchShipments)
 watch([search, statusFilter], () => { page.value = 1 })
@@ -67,6 +79,10 @@ watch([search, statusFilter], () => { page.value = 1 })
     <nav class="bg-white shadow px-6 py-4 flex justify-between items-center">
       <h1 class="text-xl font-bold">CargoTrack Dashboard</h1>
       <div class="flex items-center gap-4">
+        <button v-if="authStore.role === 'admin'" @click="showCreateModal = true"
+        class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
+          + Buat Order
+        </button>
         <span class="text-sm text-gray-600">{{ authStore.user?.name }} ({{ authStore.role }})</span>
         <button @click="handleLogout" class="text-sm text-red-600 hover:underline">Logout</button>
       </div>
@@ -97,6 +113,7 @@ watch([search, statusFilter], () => { page.value = 1 })
               <th class="px-4 py-3">Penerima</th>
               <th class="px-4 py-3">Status</th>
               <th class="px-4 py-3">Biaya</th>
+              <th class="px-4 py-3">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -114,6 +131,11 @@ watch([search, statusFilter], () => { page.value = 1 })
                 <span class="px-2 py-1 rounded text-xs bg-gray-100">{{ shipment.current_status }}</span>
               </td>
               <td class="px-4 py-3">Rp {{ Number(shipment.shipping_cost).toLocaleString('id-ID') }}</td>
+              <td class="px-4 py-3">
+                <button @click="selectedShipment = shipment" class="text-blue-600 hover:underline text-xs">
+                  Update Status
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -141,4 +163,17 @@ watch([search, statusFilter], () => { page.value = 1 })
       </div>
     </div>
   </div>
+
+  <CreateOrderModal
+    v-if="showCreateModal"
+    @close="showCreateModal = false"
+    @created="handleOrderCreated"
+  />
+
+  <StatusUpdateModal
+    v-if="selectedShipment"
+    :shipment="selectedShipment"
+    @close="selectedShipment = null"
+    @updated="handleStatusUpdated"
+  />
 </template>
